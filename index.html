@@ -48,14 +48,16 @@
         
         #geoStatus { font-size: 13px; margin-top: 8px; color: #e74c3c; text-align: center; font-weight:bold; }
         
-        /* Экран успеха */
+        .checkbox-container { margin-top: 15px; background: #fafafa; padding: 12px; border-radius: 6px; border: 1px solid #e0e0e0; display: flex; align-items: center; }
+        .checkbox-container input { margin-right: 10px; transform: scale(1.2); }
+        .checkbox-container label { margin-top: 0; text-transform: none; font-size: 14px; color: var(--lew-dark); cursor: pointer; }
+
         #successScreen { display: none; text-align: center; padding: 20px 0; }
         #successScreen h3 { color: #27ae60; font-size: 24px; margin-bottom: 10px; }
         .surveyor-card { background: #eef1ff; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #c8d4ff; }
         .surveyor-card h4 { margin: 0 0 10px 0; color: var(--lew-blue); font-size: 20px; }
         .surveyor-card p { margin: 5px 0; font-size: 16px; font-weight: 500; }
         
-        /* Скрытые элементы */
         .hidden { display: none !important; }
     </style>
 </head>
@@ -69,8 +71,8 @@
     </div>
     
     <form id="appForm">
-        <label>Bereich (Подразделение):</label>
-        <select id="bereich" onchange="toggleZone()">
+        <label>Bereich:</label>
+        <select id="bereich" onchange="updateUI()">
             <option value="LEW Verteilnetz">LEW Verteilnetz</option>
             <option value="TelNet">TelNet (LWL / Glasfaser)</option>
         </select>
@@ -81,19 +83,31 @@
         <label>Auftragsnummer:</label>
         <input type="text" id="auftrag" placeholder="z.B. 12345678" required>
 
-        <label>Standort ermitteln:</label>
-        <button type="button" class="btn btn-geo" id="geoBtn" onclick="getLocation()">📍 GPS ermitteln (Auto-Zone)</button>
-        <div id="geoStatus">GPS noch nicht erfasst</div>
-        
-        <label>Oder Adresse (falls nicht vor Ort):</label>
-        <input type="text" id="adresse" placeholder="Straße, Hausnummer, Ort">
+        <div class="checkbox-container">
+            <input type="checkbox" id="manualAddressToggle" onchange="updateUI()">
+            <label for="manualAddressToggle">Ich bin nicht vor Ort (Adresse manuell eingeben)</label>
+        </div>
 
-        <div id="zoneContainer">
-            <label>Zone / Bezirk (Автоматически по GPS):</label>
+        <div id="gpsBlock">
+            <label>Standort ermitteln:</label>
+            <button type="button" class="btn btn-geo" id="geoBtn" onclick="getLocation()">📍 GPS ermitteln</button>
+            <div id="geoStatus">GPS noch nicht erfasst</div>
+        </div>
+
+        <div id="addressBlock" class="hidden">
+            <label>Adresse der Baustelle:</label>
+            <div class="grid-2">
+                <input type="text" id="plzOrt" placeholder="PLZ & Ort">
+                <input type="text" id="strasseNr" placeholder="Straße & Hausnr.">
+            </div>
+        </div>
+
+        <div id="zoneContainer" class="hidden">
+            <label>Zone manuell wählen (da kein GPS):</label>
             <select id="bezirk">
-                <option value="Nord">Nord (Gelb - Geodät 3)</option>
-                <option value="West">West (Rot - Geodät 1)</option>
-                <option value="Ost">Ost (Blau - Geodät 2)</option>
+                <option value="Nord">Nord (Vladislav Roshchin)</option>
+                <option value="West">West (Kirill Loktionov)</option>
+                <option value="Ost">Ost (Robert Rohlfsen)</option>
             </select>
         </div>
 
@@ -136,34 +150,45 @@
 
 <script>
     const TOKEN = '8725436598:AAGAyMX77jnCLJwipVlXfTpdwpqyvqIY4XQ';
-    const CHAT_ID = '6154135480'; // Пока всё летит вам на тест
+    const CHAT_ID = '6154135480'; 
 
     let userLat = null;
     let userLon = null;
 
-    // База данных геодезистов (Имена можно будет поменять)
     const SURVEYORS = {
-        "TelNet": { name: "Geodät 4 (TelNet Spezialist)", phone: "+49 151 4444444" },
-        "Nord": { name: "Geodät 3 (Nord Zone)", phone: "+49 151 3333333" },
-        "West": { name: "Geodät 1 (West Zone)", phone: "+49 151 1111111" },
-        "Ost": { name: "Geodät 2 (Ost Zone)", phone: "+49 151 2222222" }
+        "TelNet": { name: "Luca De Marco", phone: "+49 162 8553316" },
+        "Nord": { name: "Vladislav Roshchin", phone: "+49 176 46180702" },
+        "West": { name: "Kirill Loktionov", phone: "+49 152 01917135" },
+        "Ost": { name: "Robert Rohlfsen", phone: "+49 176 46181267" }
     };
 
-    // Скрытие выбора зоны, если выбран TelNet
-    function toggleZone() {
+    function updateUI() {
         const bereich = document.getElementById("bereich").value;
+        const isManual = document.getElementById("manualAddressToggle").checked;
+
+        const gpsBlock = document.getElementById("gpsBlock");
+        const addressBlock = document.getElementById("addressBlock");
         const zoneContainer = document.getElementById("zoneContainer");
+
+        if (isManual) {
+            gpsBlock.classList.add("hidden");
+            addressBlock.classList.remove("hidden");
+        } else {
+            gpsBlock.classList.remove("hidden");
+            addressBlock.classList.add("hidden");
+        }
+
         if (bereich === "TelNet") {
             zoneContainer.classList.add("hidden");
-        } else {
+        } else if (isManual) {
             zoneContainer.classList.remove("hidden");
+        } else {
+            zoneContainer.classList.add("hidden");
         }
     }
 
-    // Определение зоны по координатам (векторная математика)
     function calculateZone(lat, lon) {
         if (lat > 48.0456191) return "Nord";
-        // Уравнение прямой между (48.0456191, 10.8311898) и (47.7757996, 10.8180755)
         let targetLon = 10.8311898 + 0.048604 * (lat - 48.0456191);
         return (lon < targetLon) ? "West" : "Ost";
     }
@@ -178,11 +203,10 @@
                     userLat = position.coords.latitude;
                     userLon = position.coords.longitude;
                     
-                    // Автоматический выбор зоны, если это Verteilnetz
                     if (document.getElementById("bereich").value === "LEW Verteilnetz") {
                         let autoZone = calculateZone(userLat, userLon);
                         document.getElementById("bezirk").value = autoZone;
-                        geoStatus.innerText = `✅ GPS erfasst -> Zone: ${autoZone}`;
+                        geoStatus.innerText = `✅ GPS erfasst (Auto-Zone: ${autoZone})`;
                     } else {
                         geoStatus.innerText = "✅ GPS erfolgreich erfasst!";
                     }
@@ -201,11 +225,16 @@
         e.preventDefault();
 
         const bereich = document.getElementById('bereich').value;
-        const adresse = document.getElementById('adresse').value;
+        const isManual = document.getElementById("manualAddressToggle").checked;
+        const plzOrt = document.getElementById('plzOrt').value;
+        const strasseNr = document.getElementById('strasseNr').value;
         
-        // Проверка: нужен либо GPS, либо введенный адрес
-        if (!userLat && adresse.trim() === "") {
-            alert("Bitte GPS ermitteln ODER eine Adresse eingeben!");
+        if (!isManual && !userLat) {
+            alert("Bitte GPS ermitteln oder das Häkchen für manuelle Adresse setzen!");
+            return;
+        }
+        if (isManual && (plzOrt.trim() === "" || strasseNr.trim() === "")) {
+            alert("Bitte PLZ/Ort und Straße/Hausnummer vollständig eingeben!");
             return;
         }
 
@@ -216,30 +245,32 @@
         const kommentar = document.getElementById('kommentar').value;
         const fotoFile = document.getElementById('foto').files[0];
         
-        // Определяем, кто поедет
         let bezirk = (bereich === "TelNet") ? "TelNet" : document.getElementById('bezirk').value;
         let assignedSurveyor = SURVEYORS[bezirk];
 
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.innerText = "Wird gesendet..."; submitBtn.disabled = true;
 
-        // Формируем текст для Telegram (чтобы вам было всё видно)
-        let locText = userLat ? `📍 [Google Maps öffnen](https://www.google.com/maps?q=$${userLat},${userLon})` : `🏠 Adresse: ${adresse}`;
+        let locText = "";
+        if (isManual) {
+            locText = `🏠 *Adresse:* ${plzOrt}, ${strasseNr}`;
+        } else {
+            locText = `📍 [Google Maps öffnen](https://www.google.com/maps?q=${userLat},${userLon})`;
+        }
         
-        const caption = `🚨 *NEUE ANFRAGE*\n\n🏢 *Bereich:* ${bereich}\n🗺 *Route an:* ${assignedSurveyor.name}\n\n👷‍♂️ *Polier:* ${name}\n📝 *Auftrag:* ${auftrag}\n📅 *Wann:* ${datum}, ${zeit}\n\n${locText}\n💬 *Kommentar:* ${kommentar || 'Kein Kommentar'}`;
+        const caption = `🚨 *NEUE ANFRAGE*\n\n🏢 *Bereich:* ${bereich}\n🗺 *Route an:* ${assignedSurveyor.name} (${assignedSurveyor.phone})\n\n👷‍♂️ *Polier:* ${name}\n📝 *Auftrag:* ${auftrag}\n📅 *Wann:* ${datum}, ${zeit}\n\n${locText}\n💬 *Kommentar:* ${kommentar || 'Kein Kommentar'}`;
 
         const formData = new FormData();
         formData.append('chat_id', CHAT_ID);
         formData.append('caption', caption);
         formData.append('parse_mode', 'Markdown');
         
-        // Если фото не прикрепили, шлем просто текст. Если прикрепили - шлем фото с текстом.
         let apiUrl = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
         if (fotoFile) {
             formData.append('photo', fotoFile);
             apiUrl = `https://api.telegram.org/bot${TOKEN}/sendPhoto`;
         } else {
-            formData.append('text', caption); // Для sendMessage параметр text, а не caption
+            formData.append('text', caption);
             formData.delete('caption');
         }
 
@@ -247,16 +278,14 @@
         .then(response => response.json())
         .then(data => {
             if (data.ok) {
-                // Прячем форму, показываем экран успеха с данными геодезиста
                 document.getElementById('appForm').classList.add('hidden');
                 document.getElementById('successScreen').style.display = 'block';
                 
-                // Подставляем данные на экран успеха
                 document.getElementById('resName').innerText = assignedSurveyor.name;
                 document.getElementById('resBereich').innerText = bereich;
                 document.getElementById('resZeit').innerText = `${datum} | ${zeit}`;
             } else {
-                alert("❌ Fehler beim Senden. Bitte erneut versuchen.");
+                alert("❌ Fehler beim Senden.");
                 submitBtn.innerText = "🚀 Anfrage senden"; submitBtn.disabled = false;
             }
         })
