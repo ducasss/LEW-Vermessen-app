@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vermessung App</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px; color: #333; }
+        .container { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
+        h2 { text-align: center; color: #2c3e50; margin-top: 0; }
+        label { font-weight: bold; margin-top: 15px; display: block; font-size: 14px; }
+        input[type="text"], select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn { display: block; width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; }
+        .btn-geo { background-color: #f39c12; }
+        .btn-submit { background-color: #27ae60; margin-top: 30px; }
+        .btn:disabled { background-color: #95a5a6; }
+        input[type="file"] { margin-top: 10px; }
+        #status { text-align: center; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📍 Vermessung</h2>
+    <form id="appForm">
+        <label>Name (Polier):</label>
+        <input type="text" id="polierName" placeholder="Max Mustermann" required>
+
+        <label>Bezirk (Район):</label>
+        <select id="bezirk">
+            <option value="Nord">Nord (Север)</option>
+            <option value="Süd">Süd (Юг)</option>
+            <option value="West">West (Запад)</option>
+            <option value="Ost">Ost (Восток)</option>
+        </select>
+
+        <label>Foto vom Graben (Фото траншеи):</label>
+        <input type="file" id="foto" accept="image/*" capture="environment" required>
+
+        <label>Standort (Локация):</label>
+        <button type="button" class="btn btn-geo" id="geoBtn" onclick="getLocation()">📍 GPS ermitteln (Получить GPS)</button>
+        <div id="geoStatus" style="font-size: 12px; margin-top: 5px; color: #e74c3c;">GPS noch nicht erfasst</div>
+
+        <button type="submit" class="btn btn-submit" id="submitBtn">🚀 Anfrage senden (Отправить)</button>
+        <div id="status"></div>
+    </form>
+</div>
+
+<script>
+    const TOKEN = '8725436598:AAGAyMX77jnCLJwipVlXfTpdwpqyvqIY4XQ';
+    const CHAT_ID = '6154135480'; 
+
+    let userLat = null;
+    let userLon = null;
+
+    function getLocation() {
+        const geoStatus = document.getElementById("geoStatus");
+        geoStatus.innerText = "Sucht... (Поиск GPS...)";
+        geoStatus.style.color = "#f39c12";
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    userLat = position.coords.latitude;
+                    userLon = position.coords.longitude;
+                    geoStatus.innerText = "✅ GPS erfolgreich erfasst!";
+                    geoStatus.style.color = "#27ae60";
+                },
+                function(error) {
+                    geoStatus.innerText = "❌ Fehler: Bitte GPS aktivieren!";
+                    geoStatus.style.color = "#e74c3c";
+                },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            geoStatus.innerText = "GPS wird von diesem Browser nicht unterstützt.";
+        }
+    }
+
+    document.getElementById('appForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (!userLat || !userLon) {
+            alert("Bitte zuerst den GPS-Standort ermitteln! (Сначала получите GPS)");
+            return;
+        }
+
+        const name = document.getElementById('polierName').value;
+        const bezirk = document.getElementById('bezirk').value;
+        const fotoFile = document.getElementById('foto').files[0];
+        const statusDiv = document.getElementById('status');
+        const submitBtn = document.getElementById('submitBtn');
+
+        statusDiv.innerText = "Wird gesendet... (Отправка...)";
+        statusDiv.style.color = "#2980b9";
+        submitBtn.disabled = true;
+
+        const caption = `🚨 *NEUE ANFRAGE*\n👷‍♂️ Polier: ${name}\n🗺 Bezirk: ${bezirk}\n📍 [Google Maps öffnen](https://www.google.com/maps/search/?api=1&query=$${userLat},${userLon})`;
+
+        const formData = new FormData();
+        formData.append('chat_id', CHAT_ID);
+        formData.append('photo', fotoFile);
+        formData.append('caption', caption);
+        formData.append('parse_mode', 'Markdown');
+
+        fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                statusDiv.innerText = "✅ Erfolgreich gesendet!";
+                statusDiv.style.color = "#27ae60";
+                document.getElementById('appForm').reset();
+                userLat = null; userLon = null;
+                document.getElementById("geoStatus").innerText = "GPS noch nicht erfasst";
+            } else {
+                statusDiv.innerText = "❌ Fehler beim Senden.";
+                statusDiv.style.color = "#e74c3c";
+            }
+        })
+        .catch(error => {
+            statusDiv.innerText = "❌ Netzwerkfehler.";
+            statusDiv.style.color = "#e74c3c";
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>
