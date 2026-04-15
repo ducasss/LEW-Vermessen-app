@@ -3,45 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vermessung App</title>
+    <title>LEW Vermessung</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px; color: #333; }
-        .container { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
-        h2 { text-align: center; color: #2c3e50; margin-top: 0; }
-        label { font-weight: bold; margin-top: 15px; display: block; font-size: 14px; }
-        input[type="text"], select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn { display: block; width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; text-align: center; }
-        .btn-geo { background-color: #f39c12; }
-        .btn-submit { background-color: #27ae60; margin-top: 30px; }
-        .btn:disabled { background-color: #95a5a6; }
-        input[type="file"] { margin-top: 10px; }
-        #status { text-align: center; margin-top: 15px; font-weight: bold; }
+        :root {
+            /* Корпоративный синий цвет LEW */
+            --lew-blue: #3b5cff; 
+            --lew-dark: #333333;
+            --bg-color: #f4f6f9;
+            --border-radius: 6px;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            padding: 20px; 
+            color: var(--lew-dark);
+            margin: 0;
+        }
+        .container { 
+            background: #ffffff; 
+            padding: 30px 25px; 
+            border-radius: var(--border-radius); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03); 
+            max-width: 400px; 
+            margin: 0 auto; 
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        /* Ссылка на официальный логотип */
+        .logo-container img {
+            max-width: 140px;
+            height: auto;
+        }
+        label { 
+            font-weight: 600; 
+            margin-top: 15px; 
+            display: block; 
+            font-size: 13px; 
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input[type="text"], select { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 6px; 
+            border: 1px solid #e0e0e0; 
+            border-radius: var(--border-radius); 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            background-color: #fafafa;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: var(--lew-blue);
+            outline: none;
+            background-color: #fff;
+        }
+        input[type="file"] { 
+            margin-top: 8px; 
+            font-size: 14px;
+            width: 100%;
+        }
+        .btn { 
+            display: block; 
+            width: 100%; 
+            padding: 15px; 
+            margin-top: 20px; 
+            border: none; 
+            border-radius: var(--border-radius); 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            text-align: center; 
+            transition: opacity 0.2s;
+        }
+        .btn-geo { 
+            background-color: #eef1ff; 
+            color: var(--lew-blue);
+            border: 1px solid rgba(59, 92, 255, 0.3);
+        }
+        .btn-submit { 
+            background-color: var(--lew-blue); 
+            color: white; 
+            margin-top: 35px; 
+        }
+        .btn:active { opacity: 0.8; }
+        .btn:disabled { 
+            background-color: #cccccc; 
+            color: #777777;
+            cursor: not-allowed;
+        }
+        #geoStatus { 
+            font-size: 13px; 
+            margin-top: 8px; 
+            color: #e74c3c; 
+            text-align: center;
+        }
+        #status { 
+            text-align: center; 
+            margin-top: 15px; 
+            font-size: 14px;
+            font-weight: 600; 
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📍 Vermessung</h2>
+    <div class="logo-container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/LEW_Lechwerke_Logo.svg/512px-LEW_Lechwerke_Logo.svg.png" alt="LEW Logo">
+    </div>
+    
     <form id="appForm">
         <label>Name (Polier):</label>
         <input type="text" id="polierName" placeholder="Max Mustermann" required>
 
-        <label>Bezirk (Район):</label>
+        <label>Bezirk:</label>
         <select id="bezirk">
-            <option value="Nord">Nord (Север)</option>
-            <option value="Süd">Süd (Юг)</option>
-            <option value="West">West (Запад)</option>
-            <option value="Ost">Ost (Восток)</option>
+            <option value="Nord">Nord</option>
+            <option value="Süd">Süd</option>
+            <option value="West">West</option>
+            <option value="Ost">Ost</option>
         </select>
 
-        <label>Foto vom Graben (Фото траншеи):</label>
+        <label>Foto vom Graben:</label>
         <input type="file" id="foto" accept="image/*" capture="environment" required>
 
-        <label>Standort (Локация):</label>
-        <button type="button" class="btn btn-geo" id="geoBtn" onclick="getLocation()">📍 GPS ermitteln (Получить GPS)</button>
-        <div id="geoStatus" style="font-size: 12px; margin-top: 5px; color: #e74c3c;">GPS noch nicht erfasst</div>
+        <label>Standort (GPS):</label>
+        <button type="button" class="btn btn-geo" id="geoBtn" onclick="getLocation()">📍 GPS ermitteln</button>
+        <div id="geoStatus">GPS noch nicht erfasst</div>
 
-        <button type="submit" class="btn btn-submit" id="submitBtn">🚀 Anfrage senden (Отправить)</button>
+        <button type="submit" class="btn btn-submit" id="submitBtn">Anfrage senden</button>
         <div id="status"></div>
     </form>
 </div>
@@ -55,7 +149,7 @@
 
     function getLocation() {
         const geoStatus = document.getElementById("geoStatus");
-        geoStatus.innerText = "Sucht... (Поиск GPS...)";
+        geoStatus.innerText = "Sucht...";
         geoStatus.style.color = "#f39c12";
 
         if (navigator.geolocation) {
@@ -81,7 +175,7 @@
         e.preventDefault();
 
         if (!userLat || !userLon) {
-            alert("Bitte zuerst den GPS-Standort ermitteln! (Сначала получите GPS)");
+            alert("Bitte zuerst den GPS-Standort ermitteln!");
             return;
         }
 
@@ -91,11 +185,11 @@
         const statusDiv = document.getElementById('status');
         const submitBtn = document.getElementById('submitBtn');
 
-        statusDiv.innerText = "Wird gesendet... (Отправка...)";
-        statusDiv.style.color = "#2980b9";
+        statusDiv.innerText = "Wird gesendet...";
+        statusDiv.style.color = "#3b5cff";
         submitBtn.disabled = true;
 
-        const caption = `🚨 *NEUE ANFRAGE*\n👷‍♂️ Polier: ${name}\n🗺 Bezirk: ${bezirk}\n📍 [Google Maps öffnen](https://www.google.com/maps/search/?api=1&query=$${userLat},${userLon})`;
+        const caption = `🚨 *NEUE ANFRAGE*\n👷‍♂️ Polier: ${name}\n🗺 Bezirk: ${bezirk}\n📍 [Google Maps öffnen](http://googleusercontent.com/maps.google.com/5{userLat},${userLon})`;
 
         const formData = new FormData();
         formData.append('chat_id', CHAT_ID);
@@ -115,6 +209,7 @@
                 document.getElementById('appForm').reset();
                 userLat = null; userLon = null;
                 document.getElementById("geoStatus").innerText = "GPS noch nicht erfasst";
+                document.getElementById("geoStatus").style.color = "#e74c3c";
             } else {
                 statusDiv.innerText = "❌ Fehler beim Senden.";
                 statusDiv.style.color = "#e74c3c";
