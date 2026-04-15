@@ -27,6 +27,7 @@
             margin: 0 auto; 
         }
         .logo-container { text-align: center; margin-bottom: 30px; }
+        .logo-link { text-decoration: none; display: inline-block; cursor: pointer; }
         
         .app-subtitle {
             color: var(--lew-blue);
@@ -97,10 +98,12 @@
 
 <div class="container" id="mainContainer">
     <div class="logo-container">
-        <svg viewBox="0 0 160 55" xmlns="http://www.w3.org/2000/svg" style="max-width: 140px; height: auto;">
-            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" fill="#3b5cff" letter-spacing="-2">LEW</text>
-        </svg>
-        <div class="app-subtitle">Vermessungsservice</div>
+        <a class="logo-link" href="javascript:location.reload();">
+            <svg viewBox="0 0 160 55" xmlns="http://www.w3.org/2000/svg" style="max-width: 140px; height: auto;">
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" fill="#3b5cff" letter-spacing="-2">LEW</text>
+            </svg>
+            <div class="app-subtitle">Vermessungsservice</div>
+        </a>
     </div>
     
     <form id="appForm">
@@ -179,6 +182,7 @@
             <p style="margin-top: 10px;">Telefon: <br><span id="resPhone"></span></p>
             <p style="margin-top:15px; font-size: 14px; color: #555;">Der Geodät wurde benachrichtigt und wird im angegebenen Zeitfenster vor Ort sein.</p>
         </div>
+        <button type="button" class="btn btn-geo" onclick="location.reload()" style="margin-top: 25px;">⟵ Zurück zur Startseite</button>
     </div>
 </div>
 
@@ -289,8 +293,8 @@
         if (isManual) {
             locText = `🏠 *Adresse:* ${plzOrt}, ${strasseNr}`;
         } else {
-            // ИСПРАВЛЕНО: Правильный и рабочий формат ссылки на Google Maps
-            locText = `📍 [Google Maps öffnen](https://maps.google.com/?q=${userLat},${userLon})`;
+            // ИСПРАВЛЕНО: Официальная и надежная ссылка на Google Maps Search API
+            locText = `📍 [Google Maps öffnen](https://www.google.com/maps/search/?api=1&query=${userLat},${userLon})`;
         }
         
         const caption = `🚨 *NEUE ANFRAGE*\n\n🏢 *Bereich:* ${bereich}\n🗺 *Route an:* ${assignedSurveyor.name} (${assignedSurveyor.displayPhone})\n\n👷‍♂️ *Polier:* ${name}\n📝 *Auftrag:* ${auftrag}\n📅 *Wann:* ${datum}, ${zeit}\n\n${locText}\n💬 *Kommentar:* ${kommentar || 'Kein Kommentar'}`;
