@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEW Vermessung</title>
+    <title>LEW Vermessungsservice</title>
     <style>
         :root {
             --lew-blue: #3b5cff; 
@@ -22,32 +22,58 @@
             background: #ffffff; 
             padding: 30px 25px; 
             border-radius: var(--border-radius); 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04); 
             max-width: 450px; 
             margin: 0 auto; 
         }
-        .logo-container { text-align: center; margin-bottom: 25px; }
+        .logo-container { text-align: center; margin-bottom: 30px; }
+        
+        /* Стильная приписка под логотипом */
+        .app-subtitle {
+            color: var(--lew-blue);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
         label { font-weight: 600; margin-top: 15px; display: block; font-size: 13px; color: #555; text-transform: uppercase; }
         
-        /* Исправление для iPhone: жесткая высота полей 48px */
+        /* Жесткий сброс стилей для идеального отображения на iPhone и Android */
         input[type="text"], input[type="date"], select { 
-            width: 100%; height: 48px; padding: 10px 12px; margin-top: 6px; border: 1px solid #e0e0e0; 
-            border-radius: var(--border-radius); box-sizing: border-box; font-size: 16px; background-color: #fafafa;
+            -webkit-appearance: none; 
+            -moz-appearance: none;
+            appearance: none;
+            width: 100%; height: 48px; padding: 0 12px; margin-top: 6px; margin-bottom: 0;
+            border: 1px solid #e0e0e0; 
+            border-radius: var(--border-radius); box-sizing: border-box; font-size: 16px; 
+            background-color: #fafafa; font-family: inherit; color: var(--lew-dark);
         }
+        
+        /* Кастомная стрелочка для списков, т.к. системную мы отключили */
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 35px;
+        }
+
         textarea { 
+            -webkit-appearance: none; appearance: none;
             width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #e0e0e0; 
             border-radius: var(--border-radius); box-sizing: border-box; font-size: 16px; background-color: #fafafa;
-            resize: vertical; min-height: 80px; 
+            resize: vertical; min-height: 80px; font-family: inherit; color: var(--lew-dark);
         }
         
         input:focus, select:focus, textarea:focus { border-color: var(--lew-blue); outline: none; background-color: #fff; }
         input[type="file"] { margin-top: 8px; font-size: 14px; width: 100%; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .grid-2 > div { display: flex; flex-direction: column; min-width: 0; }
         
         .btn { 
-            display: block; width: 100%; padding: 15px; margin-top: 15px; border: none; 
+            display: block; width: 100%; height: 50px; margin-top: 15px; border: none; 
             border-radius: var(--border-radius); font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; 
         }
         .btn-geo { background-color: #eef1ff; color: var(--lew-blue); border: 1px solid rgba(59, 92, 255, 0.3); }
@@ -56,16 +82,16 @@
         
         #geoStatus { font-size: 13px; margin-top: 8px; color: #e74c3c; text-align: center; font-weight:bold; }
         
-        .checkbox-container { margin-top: 15px; background: #fafafa; padding: 12px; border-radius: 6px; border: 1px solid #e0e0e0; display: flex; align-items: center; }
+        .checkbox-container { margin-top: 15px; background: #fafafa; padding: 12px; border-radius: var(--border-radius); border: 1px solid #e0e0e0; display: flex; align-items: center; }
         .checkbox-container input { margin-right: 10px; transform: scale(1.2); }
-        .checkbox-container label { margin-top: 0; text-transform: none; font-size: 14px; color: var(--lew-dark); cursor: pointer; }
+        .checkbox-container label { margin-top: 0; text-transform: none; font-size: 14px; color: var(--lew-dark); cursor: pointer; font-weight: 500; }
 
         #successScreen { display: none; text-align: center; padding: 20px 0; }
         #successScreen h3 { color: #27ae60; font-size: 24px; margin-bottom: 10px; }
         .surveyor-card { background: #eef1ff; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #c8d4ff; }
         .surveyor-card h4 { margin: 0 0 10px 0; color: var(--lew-blue); font-size: 20px; }
         .surveyor-card p { margin: 5px 0; font-size: 16px; font-weight: 500; }
-        .tel-link { color: var(--lew-blue); font-weight: bold; text-decoration: none; font-size: 18px; }
+        .tel-link { color: var(--lew-blue); font-weight: bold; text-decoration: none; font-size: 18px; display: inline-block; margin-top: 5px;}
         
         .hidden { display: none !important; }
     </style>
@@ -77,6 +103,7 @@
         <svg viewBox="0 0 160 55" xmlns="http://www.w3.org/2000/svg" style="max-width: 140px; height: auto;">
             <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" fill="#3b5cff" letter-spacing="-2">LEW</text>
         </svg>
+        <div class="app-subtitle">Vermessungsservice</div>
     </div>
     
     <form id="appForm">
@@ -112,11 +139,11 @@
         </div>
 
         <div id="zoneContainer" class="hidden">
-            <label>Zone manuell wählen (da kein GPS):</label>
+            <label>Zone manuell wählen:</label>
             <select id="bezirk">
-                <option value="Nord">Nord (Vladislav Roshchin)</option>
-                <option value="West">West (Kirill Loktionov)</option>
                 <option value="Ost">Ost (Robert Rohlfsen)</option>
+                <option value="West">West (Kirill Loktionov)</option>
+                <option value="Nord">Nord (Vladislav Roshchin)</option>
             </select>
         </div>
 
@@ -167,9 +194,9 @@
 
     const SURVEYORS = {
         "TelNet": { name: "Luca De Marco", phone: "+491628553316", displayPhone: "+49 162 8553316" },
-        "Nord": { name: "Vladislav Roshchin", phone: "+4917646180702", displayPhone: "+49 176 46180702" },
+        "Ost": { name: "Robert Rohlfsen", phone: "+4917646181267", displayPhone: "+49 176 46181267" },
         "West": { name: "Kirill Loktionov", phone: "+4915201917135", displayPhone: "+49 152 01917135" },
-        "Ost": { name: "Robert Rohlfsen", phone: "+4917646181267", displayPhone: "+49 176 46181267" }
+        "Nord": { name: "Vladislav Roshchin", phone: "+4917646180702", displayPhone: "+49 176 46180702" }
     };
 
     function updateUI() {
@@ -291,7 +318,6 @@
                 document.getElementById('appForm').classList.add('hidden');
                 document.getElementById('successScreen').style.display = 'block';
                 
-                // Данные на экране успеха (имя и кликабельный телефон)
                 document.getElementById('resName').innerText = assignedSurveyor.name;
                 document.getElementById('resBereich').innerText = bereich;
                 document.getElementById('resZeit').innerText = `${datum} | ${zeit}`;
