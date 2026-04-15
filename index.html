@@ -23,89 +23,45 @@
             padding: 30px 25px; 
             border-radius: var(--border-radius); 
             box-shadow: 0 2px 10px rgba(0,0,0,0.03); 
-            max-width: 400px; 
+            max-width: 450px; 
             margin: 0 auto; 
         }
-        .logo-container {
-            text-align: center;
-            margin-bottom: 25px;
+        .logo-container { text-align: center; margin-bottom: 25px; }
+        label { font-weight: 600; margin-top: 15px; display: block; font-size: 13px; color: #555; text-transform: uppercase; }
+        input[type="text"], input[type="date"], select, textarea { 
+            width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #e0e0e0; 
+            border-radius: var(--border-radius); box-sizing: border-box; font-size: 16px; background-color: #fafafa;
         }
-        label { 
-            font-weight: 600; 
-            margin-top: 15px; 
-            display: block; 
-            font-size: 13px; 
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        input[type="text"], select { 
-            width: 100%; 
-            padding: 12px; 
-            margin-top: 6px; 
-            border: 1px solid #e0e0e0; 
-            border-radius: var(--border-radius); 
-            box-sizing: border-box; 
-            font-size: 16px; 
-            background-color: #fafafa;
-            transition: border-color 0.3s;
-        }
-        input[type="text"]:focus, select:focus {
-            border-color: var(--lew-blue);
-            outline: none;
-            background-color: #fff;
-        }
-        input[type="file"] { 
-            margin-top: 8px; 
-            font-size: 14px;
-            width: 100%;
-        }
+        input:focus, select:focus, textarea:focus { border-color: var(--lew-blue); outline: none; background-color: #fff; }
+        textarea { resize: vertical; min-height: 80px; }
+        input[type="file"] { margin-top: 8px; font-size: 14px; width: 100%; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
         .btn { 
-            display: block; 
-            width: 100%; 
-            padding: 15px; 
-            margin-top: 20px; 
-            border: none; 
-            border-radius: var(--border-radius); 
-            font-size: 16px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            text-align: center; 
-            transition: opacity 0.2s;
+            display: block; width: 100%; padding: 15px; margin-top: 15px; border: none; 
+            border-radius: var(--border-radius); font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; 
         }
-        .btn-geo { 
-            background-color: #eef1ff; 
-            color: var(--lew-blue);
-            border: 1px solid rgba(59, 92, 255, 0.3);
-        }
-        .btn-submit { 
-            background-color: var(--lew-blue); 
-            color: white; 
-            margin-top: 35px; 
-        }
-        .btn:active { opacity: 0.8; }
-        .btn:disabled { 
-            background-color: #cccccc; 
-            color: #777777;
-            cursor: not-allowed;
-        }
-        #geoStatus { 
-            font-size: 13px; 
-            margin-top: 8px; 
-            color: #e74c3c; 
-            text-align: center;
-        }
-        #status { 
-            text-align: center; 
-            margin-top: 15px; 
-            font-size: 14px;
-            font-weight: 600; 
-        }
+        .btn-geo { background-color: #eef1ff; color: var(--lew-blue); border: 1px solid rgba(59, 92, 255, 0.3); }
+        .btn-submit { background-color: var(--lew-blue); color: white; margin-top: 30px; }
+        .btn:disabled { background-color: #cccccc; color: #777777; cursor: not-allowed; }
+        
+        #geoStatus { font-size: 13px; margin-top: 8px; color: #e74c3c; text-align: center; font-weight:bold; }
+        
+        /* Экран успеха */
+        #successScreen { display: none; text-align: center; padding: 20px 0; }
+        #successScreen h3 { color: #27ae60; font-size: 24px; margin-bottom: 10px; }
+        .surveyor-card { background: #eef1ff; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #c8d4ff; }
+        .surveyor-card h4 { margin: 0 0 10px 0; color: var(--lew-blue); font-size: 20px; }
+        .surveyor-card p { margin: 5px 0; font-size: 16px; font-weight: 500; }
+        
+        /* Скрытые элементы */
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="mainContainer">
     <div class="logo-container">
         <svg viewBox="0 0 160 55" xmlns="http://www.w3.org/2000/svg" style="max-width: 140px; height: auto;">
             <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="52" fill="#3b5cff" letter-spacing="-2">LEW</text>
@@ -113,47 +69,123 @@
     </div>
     
     <form id="appForm">
+        <label>Bereich (Подразделение):</label>
+        <select id="bereich" onchange="toggleZone()">
+            <option value="LEW Verteilnetz">LEW Verteilnetz</option>
+            <option value="TelNet">TelNet (LWL / Glasfaser)</option>
+        </select>
+
         <label>Name (Polier):</label>
         <input type="text" id="polierName" placeholder="Max Mustermann" required>
 
-        <label>Bezirk:</label>
-        <select id="bezirk">
-            <option value="Nord">Nord</option>
-            <option value="Süd">Süd</option>
-            <option value="West">West</option>
-            <option value="Ost">Ost</option>
-        </select>
+        <label>Auftragsnummer:</label>
+        <input type="text" id="auftrag" placeholder="z.B. 12345678" required>
+
+        <label>Standort ermitteln:</label>
+        <button type="button" class="btn btn-geo" id="geoBtn" onclick="getLocation()">📍 GPS ermitteln (Auto-Zone)</button>
+        <div id="geoStatus">GPS noch nicht erfasst</div>
+        
+        <label>Oder Adresse (falls nicht vor Ort):</label>
+        <input type="text" id="adresse" placeholder="Straße, Hausnummer, Ort">
+
+        <div id="zoneContainer">
+            <label>Zone / Bezirk (Автоматически по GPS):</label>
+            <select id="bezirk">
+                <option value="Nord">Nord (Gelb - Geodät 3)</option>
+                <option value="West">West (Rot - Geodät 1)</option>
+                <option value="Ost">Ost (Blau - Geodät 2)</option>
+            </select>
+        </div>
 
         <label>Foto vom Graben:</label>
-        <input type="file" id="foto" accept="image/*" capture="environment" required>
+        <input type="file" id="foto" accept="image/*" capture="environment">
 
-        <label>Standort (GPS):</label>
-        <button type="button" class="btn btn-geo" id="geoBtn" onclick="getLocation()">📍 GPS ermitteln</button>
-        <div id="geoStatus">GPS noch nicht erfasst</div>
+        <div class="grid-2">
+            <div>
+                <label>Datum:</label>
+                <input type="date" id="datum" required>
+            </div>
+            <div>
+                <label>Uhrzeit:</label>
+                <select id="zeit" required>
+                    <option value="08:00 - 10:00">08:00 - 10:00</option>
+                    <option value="10:00 - 12:00">10:00 - 12:00</option>
+                    <option value="12:00 - 14:00">12:00 - 14:00</option>
+                    <option value="14:00 - 16:00">14:00 - 16:00</option>
+                </select>
+            </div>
+        </div>
 
-        <button type="submit" class="btn btn-submit" id="submitBtn">Anfrage senden</button>
-        <div id="status"></div>
+        <label>Kommentar:</label>
+        <textarea id="kommentar" placeholder="Besonderheiten, Ansprechpartner vor Ort..."></textarea>
+
+        <button type="submit" class="btn btn-submit" id="submitBtn">🚀 Anfrage senden</button>
     </form>
+
+    <div id="successScreen">
+        <h3>✅ Anfrage gesendet!</h3>
+        <p>Ihre Daten wurden erfolgreich übermittelt.</p>
+        <div class="surveyor-card">
+            <h4 id="resName">Geodät Name</h4>
+            <p>Einheit: <span id="resBereich">LEW</span></p>
+            <p>Zeitfenster: <span id="resZeit">08:00 - 10:00</span></p>
+            <p style="margin-top:15px; font-size: 14px; color: #555;">Der Geodät wurde benachrichtigt und wird im angegebenen Zeitfenster vor Ort sein.</p>
+        </div>
+    </div>
 </div>
 
 <script>
     const TOKEN = '8725436598:AAGAyMX77jnCLJwipVlXfTpdwpqyvqIY4XQ';
-    const CHAT_ID = '6154135480'; 
+    const CHAT_ID = '6154135480'; // Пока всё летит вам на тест
 
     let userLat = null;
     let userLon = null;
 
+    // База данных геодезистов (Имена можно будет поменять)
+    const SURVEYORS = {
+        "TelNet": { name: "Geodät 4 (TelNet Spezialist)", phone: "+49 151 4444444" },
+        "Nord": { name: "Geodät 3 (Nord Zone)", phone: "+49 151 3333333" },
+        "West": { name: "Geodät 1 (West Zone)", phone: "+49 151 1111111" },
+        "Ost": { name: "Geodät 2 (Ost Zone)", phone: "+49 151 2222222" }
+    };
+
+    // Скрытие выбора зоны, если выбран TelNet
+    function toggleZone() {
+        const bereich = document.getElementById("bereich").value;
+        const zoneContainer = document.getElementById("zoneContainer");
+        if (bereich === "TelNet") {
+            zoneContainer.classList.add("hidden");
+        } else {
+            zoneContainer.classList.remove("hidden");
+        }
+    }
+
+    // Определение зоны по координатам (векторная математика)
+    function calculateZone(lat, lon) {
+        if (lat > 48.0456191) return "Nord";
+        // Уравнение прямой между (48.0456191, 10.8311898) и (47.7757996, 10.8180755)
+        let targetLon = 10.8311898 + 0.048604 * (lat - 48.0456191);
+        return (lon < targetLon) ? "West" : "Ost";
+    }
+
     function getLocation() {
         const geoStatus = document.getElementById("geoStatus");
-        geoStatus.innerText = "Sucht...";
-        geoStatus.style.color = "#f39c12";
+        geoStatus.innerText = "Sucht..."; geoStatus.style.color = "#f39c12";
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 function(position) {
                     userLat = position.coords.latitude;
                     userLon = position.coords.longitude;
-                    geoStatus.innerText = "✅ GPS erfolgreich erfasst!";
+                    
+                    // Автоматический выбор зоны, если это Verteilnetz
+                    if (document.getElementById("bereich").value === "LEW Verteilnetz") {
+                        let autoZone = calculateZone(userLat, userLon);
+                        document.getElementById("bezirk").value = autoZone;
+                        geoStatus.innerText = `✅ GPS erfasst -> Zone: ${autoZone}`;
+                    } else {
+                        geoStatus.innerText = "✅ GPS erfolgreich erfasst!";
+                    }
                     geoStatus.style.color = "#27ae60";
                 },
                 function(error) {
@@ -162,62 +194,75 @@
                 },
                 { enableHighAccuracy: true }
             );
-        } else {
-            geoStatus.innerText = "GPS wird von diesem Browser nicht unterstützt.";
         }
     }
 
     document.getElementById('appForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        if (!userLat || !userLon) {
-            alert("Bitte zuerst den GPS-Standort ermitteln!");
+        const bereich = document.getElementById('bereich').value;
+        const adresse = document.getElementById('adresse').value;
+        
+        // Проверка: нужен либо GPS, либо введенный адрес
+        if (!userLat && adresse.trim() === "") {
+            alert("Bitte GPS ermitteln ODER eine Adresse eingeben!");
             return;
         }
 
         const name = document.getElementById('polierName').value;
-        const bezirk = document.getElementById('bezirk').value;
+        const auftrag = document.getElementById('auftrag').value;
+        const datum = document.getElementById('datum').value;
+        const zeit = document.getElementById('zeit').value;
+        const kommentar = document.getElementById('kommentar').value;
         const fotoFile = document.getElementById('foto').files[0];
-        const statusDiv = document.getElementById('status');
+        
+        // Определяем, кто поедет
+        let bezirk = (bereich === "TelNet") ? "TelNet" : document.getElementById('bezirk').value;
+        let assignedSurveyor = SURVEYORS[bezirk];
+
         const submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerText = "Wird gesendet..."; submitBtn.disabled = true;
 
-        statusDiv.innerText = "Wird gesendet...";
-        statusDiv.style.color = "#3b5cff";
-        submitBtn.disabled = true;
-
-        // ИСПРАВЛЕНО: Правильная прямая ссылка на Google Карты
-        const caption = `🚨 *NEUE ANFRAGE*\n👷‍♂️ Polier: ${name}\n🗺 Bezirk: ${bezirk}\n📍 [Google Maps öffnen](https://www.google.com/maps?q=${userLat},${userLon})`;
+        // Формируем текст для Telegram (чтобы вам было всё видно)
+        let locText = userLat ? `📍 [Google Maps öffnen](https://www.google.com/maps?q=$${userLat},${userLon})` : `🏠 Adresse: ${adresse}`;
+        
+        const caption = `🚨 *NEUE ANFRAGE*\n\n🏢 *Bereich:* ${bereich}\n🗺 *Route an:* ${assignedSurveyor.name}\n\n👷‍♂️ *Polier:* ${name}\n📝 *Auftrag:* ${auftrag}\n📅 *Wann:* ${datum}, ${zeit}\n\n${locText}\n💬 *Kommentar:* ${kommentar || 'Kein Kommentar'}`;
 
         const formData = new FormData();
         formData.append('chat_id', CHAT_ID);
-        formData.append('photo', fotoFile);
         formData.append('caption', caption);
         formData.append('parse_mode', 'Markdown');
+        
+        // Если фото не прикрепили, шлем просто текст. Если прикрепили - шлем фото с текстом.
+        let apiUrl = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
+        if (fotoFile) {
+            formData.append('photo', fotoFile);
+            apiUrl = `https://api.telegram.org/bot${TOKEN}/sendPhoto`;
+        } else {
+            formData.append('text', caption); // Для sendMessage параметр text, а не caption
+            formData.delete('caption');
+        }
 
-        fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, {
-            method: 'POST',
-            body: formData
-        })
+        fetch(apiUrl, { method: 'POST', body: formData })
         .then(response => response.json())
         .then(data => {
             if (data.ok) {
-                statusDiv.innerText = "✅ Erfolgreich gesendet!";
-                statusDiv.style.color = "#27ae60";
-                document.getElementById('appForm').reset();
-                userLat = null; userLon = null;
-                document.getElementById("geoStatus").innerText = "GPS noch nicht erfasst";
-                document.getElementById("geoStatus").style.color = "#e74c3c";
+                // Прячем форму, показываем экран успеха с данными геодезиста
+                document.getElementById('appForm').classList.add('hidden');
+                document.getElementById('successScreen').style.display = 'block';
+                
+                // Подставляем данные на экран успеха
+                document.getElementById('resName').innerText = assignedSurveyor.name;
+                document.getElementById('resBereich').innerText = bereich;
+                document.getElementById('resZeit').innerText = `${datum} | ${zeit}`;
             } else {
-                statusDiv.innerText = "❌ Fehler beim Senden.";
-                statusDiv.style.color = "#e74c3c";
+                alert("❌ Fehler beim Senden. Bitte erneut versuchen.");
+                submitBtn.innerText = "🚀 Anfrage senden"; submitBtn.disabled = false;
             }
         })
         .catch(error => {
-            statusDiv.innerText = "❌ Netzwerkfehler.";
-            statusDiv.style.color = "#e74c3c";
-        })
-        .finally(() => {
-            submitBtn.disabled = false;
+            alert("❌ Netzwerkfehler.");
+            submitBtn.innerText = "🚀 Anfrage senden"; submitBtn.disabled = false;
         });
     });
 </script>
