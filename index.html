@@ -28,15 +28,23 @@
         }
         .logo-container { text-align: center; margin-bottom: 25px; }
         label { font-weight: 600; margin-top: 15px; display: block; font-size: 13px; color: #555; text-transform: uppercase; }
-        input[type="text"], input[type="date"], select, textarea { 
-            width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #e0e0e0; 
+        
+        /* Исправление для iPhone: жесткая высота полей 48px */
+        input[type="text"], input[type="date"], select { 
+            width: 100%; height: 48px; padding: 10px 12px; margin-top: 6px; border: 1px solid #e0e0e0; 
             border-radius: var(--border-radius); box-sizing: border-box; font-size: 16px; background-color: #fafafa;
         }
+        textarea { 
+            width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #e0e0e0; 
+            border-radius: var(--border-radius); box-sizing: border-box; font-size: 16px; background-color: #fafafa;
+            resize: vertical; min-height: 80px; 
+        }
+        
         input:focus, select:focus, textarea:focus { border-color: var(--lew-blue); outline: none; background-color: #fff; }
-        textarea { resize: vertical; min-height: 80px; }
         input[type="file"] { margin-top: 8px; font-size: 14px; width: 100%; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid-2 > div { display: flex; flex-direction: column; min-width: 0; }
         
         .btn { 
             display: block; width: 100%; padding: 15px; margin-top: 15px; border: none; 
@@ -57,6 +65,7 @@
         .surveyor-card { background: #eef1ff; padding: 20px; border-radius: 8px; margin-top: 20px; border: 1px solid #c8d4ff; }
         .surveyor-card h4 { margin: 0 0 10px 0; color: var(--lew-blue); font-size: 20px; }
         .surveyor-card p { margin: 5px 0; font-size: 16px; font-weight: 500; }
+        .tel-link { color: var(--lew-blue); font-weight: bold; text-decoration: none; font-size: 18px; }
         
         .hidden { display: none !important; }
     </style>
@@ -83,22 +92,22 @@
         <label>Auftragsnummer:</label>
         <input type="text" id="auftrag" placeholder="z.B. 12345678" required>
 
-        <div class="checkbox-container">
-            <input type="checkbox" id="manualAddressToggle" onchange="updateUI()">
-            <label for="manualAddressToggle">Ich bin nicht vor Ort (Adresse manuell eingeben)</label>
-        </div>
-
         <div id="gpsBlock">
             <label>Standort ermitteln:</label>
             <button type="button" class="btn btn-geo" id="geoBtn" onclick="getLocation()">📍 GPS ermitteln</button>
             <div id="geoStatus">GPS noch nicht erfasst</div>
         </div>
 
+        <div class="checkbox-container">
+            <input type="checkbox" id="manualAddressToggle" onchange="updateUI()">
+            <label for="manualAddressToggle">Oder: Ich bin nicht vor Ort (Adresse manuell eingeben)</label>
+        </div>
+
         <div id="addressBlock" class="hidden">
             <label>Adresse der Baustelle:</label>
             <div class="grid-2">
-                <input type="text" id="plzOrt" placeholder="PLZ & Ort">
-                <input type="text" id="strasseNr" placeholder="Straße & Hausnr.">
+                <div><input type="text" id="plzOrt" placeholder="PLZ & Ort"></div>
+                <div><input type="text" id="strasseNr" placeholder="Straße & Hausnr."></div>
             </div>
         </div>
 
@@ -143,6 +152,7 @@
             <h4 id="resName">Geodät Name</h4>
             <p>Einheit: <span id="resBereich">LEW</span></p>
             <p>Zeitfenster: <span id="resZeit">08:00 - 10:00</span></p>
+            <p style="margin-top: 10px;">Telefon: <br><span id="resPhone"></span></p>
             <p style="margin-top:15px; font-size: 14px; color: #555;">Der Geodät wurde benachrichtigt und wird im angegebenen Zeitfenster vor Ort sein.</p>
         </div>
     </div>
@@ -156,10 +166,10 @@
     let userLon = null;
 
     const SURVEYORS = {
-        "TelNet": { name: "Luca De Marco", phone: "+49 162 8553316" },
-        "Nord": { name: "Vladislav Roshchin", phone: "+49 176 46180702" },
-        "West": { name: "Kirill Loktionov", phone: "+49 152 01917135" },
-        "Ost": { name: "Robert Rohlfsen", phone: "+49 176 46181267" }
+        "TelNet": { name: "Luca De Marco", phone: "+491628553316", displayPhone: "+49 162 8553316" },
+        "Nord": { name: "Vladislav Roshchin", phone: "+4917646180702", displayPhone: "+49 176 46180702" },
+        "West": { name: "Kirill Loktionov", phone: "+4915201917135", displayPhone: "+49 152 01917135" },
+        "Ost": { name: "Robert Rohlfsen", phone: "+4917646181267", displayPhone: "+49 176 46181267" }
     };
 
     function updateUI() {
@@ -255,10 +265,10 @@
         if (isManual) {
             locText = `🏠 *Adresse:* ${plzOrt}, ${strasseNr}`;
         } else {
-            locText = `📍 [Google Maps öffnen](https://www.google.com/maps?q=${userLat},${userLon})`;
+            locText = `📍 [Google Maps öffnen](https://www.google.com/maps?q=$${userLat},${userLon})`;
         }
         
-        const caption = `🚨 *NEUE ANFRAGE*\n\n🏢 *Bereich:* ${bereich}\n🗺 *Route an:* ${assignedSurveyor.name} (${assignedSurveyor.phone})\n\n👷‍♂️ *Polier:* ${name}\n📝 *Auftrag:* ${auftrag}\n📅 *Wann:* ${datum}, ${zeit}\n\n${locText}\n💬 *Kommentar:* ${kommentar || 'Kein Kommentar'}`;
+        const caption = `🚨 *NEUE ANFRAGE*\n\n🏢 *Bereich:* ${bereich}\n🗺 *Route an:* ${assignedSurveyor.name} (${assignedSurveyor.displayPhone})\n\n👷‍♂️ *Polier:* ${name}\n📝 *Auftrag:* ${auftrag}\n📅 *Wann:* ${datum}, ${zeit}\n\n${locText}\n💬 *Kommentar:* ${kommentar || 'Kein Kommentar'}`;
 
         const formData = new FormData();
         formData.append('chat_id', CHAT_ID);
@@ -281,9 +291,11 @@
                 document.getElementById('appForm').classList.add('hidden');
                 document.getElementById('successScreen').style.display = 'block';
                 
+                // Данные на экране успеха (имя и кликабельный телефон)
                 document.getElementById('resName').innerText = assignedSurveyor.name;
                 document.getElementById('resBereich').innerText = bereich;
                 document.getElementById('resZeit').innerText = `${datum} | ${zeit}`;
+                document.getElementById('resPhone').innerHTML = `<a class="tel-link" href="tel:${assignedSurveyor.phone}">${assignedSurveyor.displayPhone}</a>`;
             } else {
                 alert("❌ Fehler beim Senden.");
                 submitBtn.innerText = "🚀 Anfrage senden"; submitBtn.disabled = false;
